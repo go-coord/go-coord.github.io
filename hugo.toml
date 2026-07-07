@@ -1,0 +1,31 @@
+baseURL = "https://go-coord.github.io/"
+title = "go-coord"
+disableKinds = ["taxonomy", "term", "RSS", "sitemap", "404"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[[params.phases]]
+  name = "Host liveness"
+  status = "ready"
+  blurb = "Each agent registers a short-TTL lease at `/coord/hosts/<host_uuid>` and refreshes it in the background. Lease expiry is the cluster-wide signal that a host is down — process death, network partition, kernel panic."
+[[params.phases]]
+  name = "Self-healing keep-alive"
+  status = "ready"
+  blurb = "The keep-alive goroutine re-Grants + re-Puts + re-KeepAlives with exponential backoff if etcd drops the renewal stream (network blip, leader change, restart), so a transient hiccup doesn't silently retire a healthy host forever."
+[[params.phases]]
+  name = "Host watcher"
+  status = "ready"
+  blurb = "A prefix watch emits `HostEvent {Up|Down}` on a channel. A fresh watcher first replays every existing host as a synthetic `Up`, and `Down` events carry the host's last-seen metadata so consumers can name it without a separate lookup."
+[[params.phases]]
+  name = "Leader election"
+  status = "ready"
+  blurb = "etcd-concurrency leader election scoped to a key: `Campaign` blocks until leader, `TryCampaign` is non-blocking, `Resign` allows succession, and `Observe` streams the current leader to followers."
+[[params.phases]]
+  name = "Election pool"
+  status = "ready"
+  blurb = "One long-lived etcd session per election key, so cross-host work coalesces to a single leader per key without paying a grant/revoke cycle on every host-down × key combination."
+[[params.phases]]
+  name = "Tests & coverage"
+  status = "ready"
+  blurb = "Seam-based unit tests drive every branch — including the etcd grant/put/keepalive/watch error paths — deterministically with in-package fakes on all six arches; embedded-etcd integration tests validate the whole thing end-to-end at 100% coverage."
